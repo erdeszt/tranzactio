@@ -2,6 +2,7 @@ package io.github.gaelrenoux.tranzactio
 
 import _root_.doobie.free.KleisliInterpreter
 import _root_.doobie.util.transactor.{Strategy, Transactor}
+import _root_.doobie.util.log.LogHandler
 import cats.effect.Resource
 import io.github.gaelrenoux.tranzactio.test.DatabaseModuleTestOps
 import zio.interop.catz._
@@ -47,7 +48,7 @@ package object doobie extends Wrapper {
     override final def connectionFromJdbc(connection: => JdbcConnection)(implicit trace: Trace): ZIO[Any, Nothing, Connection] = {
       ZIO.succeed {
         val connect = (c: JdbcConnection) => Resource.pure[Task, JdbcConnection](c)
-        val interp = KleisliInterpreter[Task].ConnectionInterpreter
+        val interp = KleisliInterpreter[Task](LogHandler.noop[Task]).ConnectionInterpreter
         val tran = Transactor(connection, connect, interp, Strategy.void)
         tran
       }
